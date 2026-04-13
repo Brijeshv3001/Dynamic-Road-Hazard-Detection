@@ -1,0 +1,13 @@
+torch
+torchvision
+opencv-python
+numpy
+matplotlib
+scikit-learn
+fastapi
+uvicorn
+pyyaml
+requests
+paho-mqtt
+pandas
+Pillow

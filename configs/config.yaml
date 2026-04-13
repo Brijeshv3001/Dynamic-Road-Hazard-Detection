@@ -1,0 +1,53 @@
+project:
+  name: "Dynamic Road Hazard Detection and Alert System"
+  version: "1.0.0"
+
+detection:
+  model_type: "yolov6"  # yolov6 | cnn_fallback
+  model_path: "models/yolov6_weights.pt"
+  cnn_model_path: "models/cnn_fallback.pt"
+  class_names:
+    - pothole
+    - speed_breaker
+    - road_crack
+    - waterlogging
+    - debris
+  confidence_threshold: 0.4
+  iou_threshold: 0.45
+  device: "cuda"  # cuda | cpu
+
+input:
+  source: 0  # webcam index or video path
+  frame_width: 1280
+  frame_height: 720
+
+iot:
+  protocol: "http"  # http | mqtt
+  http_endpoint: "http://127.0.0.1:8000/hazards"
+  mqtt:
+    broker: "localhost"
+    port: 1883
+    topic: "road/hazards"
+
+gps:
+  mode: "simulated"
+  base_latitude: 37.7749
+  base_longitude: -122.4194
+  jitter: 0.0015
+
+logging:
+  log_file: "outputs/logs/system.log"
+  hazard_log_json: "outputs/logs/hazard_log.json"
+
+training:
+  data_yaml: "data/dataset.yaml"
+  epochs: 50
+  batch_size: 16
+  img_size: 640
+  workers: 4
+  output_dir: "outputs/models"
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+  db_path: "outputs/logs/hazards.db"
