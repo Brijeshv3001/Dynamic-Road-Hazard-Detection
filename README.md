@@ -4,6 +4,13 @@ A production-style AI + IoT pipeline for detecting road hazards in real time, ge
 
 ---
 
+## 🌐 Project Website & Live Demo
+
+- **Project Website**: [Insert Website Link Here](#)
+- **Vercel Live Server**: [Insert Vercel Link Here](#)
+
+---
+
 ## 1) Project Overview
 
 This project detects the following hazards from camera/video:
