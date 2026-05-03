@@ -8,6 +8,8 @@ A state-of-the-art dual-architecture system for comprehensive road hazard and tr
 
 - **SENTINEL AI Dashboard**: [https://sentinel-road-hazard-ai.vercel.app](https://sentinel-road-hazard-ai.vercel.app)
 
+![SENTINEL Dashboard Sample](assets/sentinel_mockup.png)
+
 ---
 
 ## 1. Project Overview
