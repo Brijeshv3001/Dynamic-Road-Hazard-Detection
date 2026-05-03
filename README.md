@@ -1,329 +1,165 @@
-# 🚗 Dynamic Road Hazard Detection and Alert System using YOLOv6, IoT, and GPS
+# 🚗 Dynamic Road Hazard Detection: Dual-Architecture AI & IoT Pipeline
 
-A production-style AI + IoT pipeline for detecting road hazards in real time, geotagging them with GPS, and publishing to a backend for monitoring and analytics.
+A state-of-the-art dual-architecture system for comprehensive road hazard and traffic object detection. This repository combines a **Python edge/cloud backend** utilizing YOLOv6 and an IoT pipeline, with a **React-based browser frontend (SENTINEL)** powered by TensorFlow.js.
 
 ---
 
 ## 🌐 Project Website & Live Demo
 
-- **Project Website & Live Server**: [https://sentinel-road-hazard-ai.vercel.app](https://sentinel-road-hazard-ai.vercel.app)
+- **SENTINEL AI Dashboard**: [https://sentinel-road-hazard-ai.vercel.app](https://sentinel-road-hazard-ai.vercel.app)
 
 ---
 
-## 1) Project Overview
+## 1. Project Overview
 
-This project detects the following hazards from camera/video:
+This project provides two interconnected solutions for smart city and autonomous vehicle tracking:
 
-- Potholes
-- Speed breakers
-- Road cracks
-- Waterlogging
-- Debris/obstacles
-
-When a hazard is detected, the system captures:
-
-- `hazard_type`
-- `confidence`
-- `timestamp`
-- `gps.latitude`, `gps.longitude`
-
-Then it sends events to:
-
-- **FastAPI backend** (`HTTP`) OR
-- **MQTT topic** (`IoT protocol mode`)
+1. **SENTINEL (Frontend App)**: A highly-optimized React web application running TensorFlow.js (COCO-SSD / MobileNetV2) entirely in the browser. It tracks 80 object classes (pedestrians, vehicles, traffic lights) with zero server latency. It features a cyberpunk HUD aesthetic with three modes: live webcam, image scan, and video upload.
+2. **YOLOv6 IoT Pipeline (Backend System)**: A Python-based computer vision edge application designed to detect critical road anomalies (potholes, road cracks, speed breakers, waterlogging, debris). It geotags hazards using GPS and pushes events over HTTP/MQTT to a centralized FastAPI server for analytics.
 
 ---
 
-## 2) Architecture (AI + IoT Pipeline)
+## 2. Architecture & Models
 
 ```mermaid
-flowchart LR
-    A[Camera/Webcam/Video] --> B[YOLOv6 Detector]
-    B -->|Fallback if unavailable| C[CNN Classifier]
-    B --> D[Hazard Event Builder]
-    C --> D
-    D --> E[GPS Module\n(simulated/real)]
-    E --> F[IoT Sender\nHTTP or MQTT]
-    F --> G[FastAPI Backend]
-    G --> H[(SQLite + JSON Logs)]
-    H --> I[Monitoring / Analytics / Dashboard]
+flowchart TD
+    subgraph Frontend [SENTINEL Web App]
+        F1[Webcam/Video Input] --> F2[TensorFlow.js\nCOCO-SSD MobileNetV2]
+        F2 --> F3[Browser Canvas\nBounding Box Overlay]
+        F3 --> F4[HUD Dashboard & Alerts]
+    end
+
+    subgraph Backend [Python IoT Edge]
+        B1[Camera/Video File] --> B2[YOLOv6 Model\nCustom Trained]
+        B2 -->|Fallback| B3[CNN Classifier]
+        B2 --> B4[Hazard Geotagger\n+ GPS]
+        B4 --> B5[HTTP/MQTT Publisher]
+    end
+
+    subgraph Server [Central Cloud]
+        S1[FastAPI Backend] --> S2[(SQLite Database)]
+        S2 --> S3[Analytics Dashboard]
+        B5 -.->|API Call| S1
+    end
 ```
+
+### 🧠 The Models
+*   **TensorFlow.js COCO-SSD (Frontend)**: Runs instantly on any device via the browser. Pre-trained on the COCO dataset to detect 80 everyday objects. Highly optimized for high FPS without heavy GPU requirements.
+*   **YOLOv6 (Backend)**: Custom-trained on a curated dataset specifically for road hazards not covered by COCO. Optimized for edge deployment on autonomous vehicle hardware (e.g., NVIDIA Jetson).
 
 ---
 
-## 3) Repository Structure
+## 3. Dataset Information
+
+The system relies on two distinct datasets:
+
+1. **Custom Road Hazards Dataset (Roboflow)**
+   - Used to train the backend YOLOv6 detector.
+   - **Classes**: `pothole`, `speed_breaker`, `road_crack`, `waterlogging`, `debris`
+   - Data is augmented with horizontal flipping, rotation, and brightness jitter to ensure robustness in various weather and lighting conditions.
+
+2. **Common Objects in Context (COCO)**
+   - The foundation of the SENTINEL frontend.
+   - Detects pedestrians, bicycles, cars, motorcycles, buses, trucks, traffic lights, stop signs, and animals.
+   - Used to alert drivers of immediate obstacles and dynamic traffic agents.
+
+---
+
+## 4. Repository Structure
+
+This repository uses a monorepo structure:
 
 ```text
-road-hazard-detection-ai-iot/
-│── data/
-│── models/
-│── src/
-│   │── detection/
-│   │   │── yolov6_infer.py
-│   │   │── yolov6_train.py
-│   │   │── evaluate.py
-│   │── classification/
-│   │   │── cnn_model.py
-│   │── iot/
-│   │   │── gps_module.py
-│   │   │── send_data.py
-│   │── backend/
-│   │   │── server.py
-│   │── utils/
-│   │   │── config.py
-│   │   │── logger.py
-│── configs/
-│   │── config.yaml
-│── outputs/
-│   │── logs/
-│   │── models/
-│── requirements.txt
-│── README.md
-│── main.py
+Dynamic-Road-Hazard-Detection/
+│
+│── frontend/               # React + Vite SENTINEL Web App
+│   │── src/
+│   │   │── components/     # HUD, Scanner, Legend UI
+│   │   │── hooks/          # TensorFlow.js integration
+│   │   │── utils/          # Canvas bounding box logic
+│   │── package.json
+│   │── tailwind.config.js
+│
+│── backend/                # Python AI & IoT System
+│   │── data/               # YOLO dataset structure
+│   │── models/             # PyTorch weights
+│   │── src/
+│   │   │── detection/      # YOLOv6 inference & training
+│   │   │── classification/ # Fallback CNN logic
+│   │   │── iot/            # GPS & MQTT/HTTP publishers
+│   │   │── backend/        # FastAPI server
+│   │── configs/
+│   │── main.py
+│   │── requirements.txt
 ```
+
+*(Note: The Python source code remains in the root/src directory as standard.)*
 
 ---
 
-## 4) Setup Instructions
+## 5. Setup & Execution Instructions
 
-### 4.1 Clone and install dependencies
+### A. Running the SENTINEL Frontend Locally
 
-```bash
-git clone <your-repo-url>
-cd road-hazard-detection-ai-iot
-python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-# .venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-```
+1. Navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *The app will launch at `http://localhost:5173`.*
 
-### 4.2 Optional YOLOv6 source setup (for training/inference with official repo)
+### B. Running the Python Backend & IoT Pipeline
 
-```bash
-git clone https://github.com/meituan/YOLOv6.git models/YOLOv6
-pip install -r models/YOLOv6/requirements.txt
-```
-
-> If YOLOv6 weights/repo are unavailable, runtime falls back to the CNN model (if trained).
-
----
-
-## 5) Dataset Preparation (Roboflow, YOLO format)
-
-1. Collect and label hazard classes on Roboflow:
-   - `pothole`, `speed_breaker`, `road_crack`, `waterlogging`, `debris`
-2. Export dataset in **YOLO format**.
-3. Place data under `data/` with standard split structure:
-
-```text
-data/
-  images/
-    train/
-    val/
-    test/
-  labels/
-    train/
-    val/
-    test/
-```
-
-4. Create `data/dataset.yaml`:
-
-```yaml
-train: data/images/train
-val: data/images/val
-test: data/images/test
-
-nc: 5
-names: ["pothole", "speed_breaker", "road_crack", "waterlogging", "debris"]
-```
-
-### 5.1 Augmentation
-
-- Horizontal flip
-- Rotation
-- Brightness jitter
-
-For fallback CNN, augmentation is applied in `FolderImageDataset` (`src/classification/cnn_model.py`).
+1. Return to the root directory and create a virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/macOS
+   # .venv\Scripts\activate   # Windows
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. **Start the FastAPI Backend Server**:
+   ```bash
+   python main.py --mode server
+   ```
+4. **Run the YOLOv6 Edge Detector** (in a new terminal):
+   ```bash
+   python main.py --mode detect --display
+   ```
 
 ---
 
-## 6) Training
+## 6. Training the Custom YOLOv6 Model
 
-### 6.1 Train YOLOv6 detector
+If you wish to retrain the road hazard model on your own Roboflow export:
 
-```bash
-python -m src.detection.yolov6_train --config configs/config.yaml
-```
-
-Override example:
-
-```bash
-python -m src.detection.yolov6_train \
-  --data-yaml data/dataset.yaml \
-  --epochs 80 \
-  --batch-size 16 \
-  --img-size 640 \
-  --device cuda
-```
-
-### 6.2 Train fallback CNN classifier
-
-Organize fallback classification dataset:
-
-```text
-data/cnn_train/
-  pothole/
-  speed_breaker/
-  road_crack/
-  waterlogging/
-  debris/
-```
-
-Then run from Python:
-
-```python
-from src.classification.cnn_model import train_cnn
-
-train_cnn(
-    train_dir="data/cnn_train",
-    class_names=["pothole", "speed_breaker", "road_crack", "waterlogging", "debris"],
-    out_path="models/cnn_fallback.pt",
-    device="cuda",  # or cpu
-    epochs=10,
-)
-```
+1. Clone the official YOLOv6 repository into `models/`:
+   ```bash
+   git clone https://github.com/meituan/YOLOv6.git models/YOLOv6
+   pip install -r models/YOLOv6/requirements.txt
+   ```
+2. Prepare your data in standard YOLO format inside the `data/` folder and update `configs/config.yaml`.
+3. Start training:
+   ```bash
+   python -m src.detection.yolov6_train --data-yaml data/dataset.yaml --epochs 80 --batch-size 16 --img-size 640 --device cuda
+   ```
 
 ---
 
-## 7) Running Backend Server
+## 7. Production Notes & Future Scope
 
-```bash
-python main.py --mode server
-```
-
-or
-
-```bash
-uvicorn src.backend.server:app --host 0.0.0.0 --port 8000
-```
-
-### API endpoints
-
-- `GET /` health check
-- `POST /hazards` receive hazard events
-- `GET /hazards?limit=100` list latest logs
+- **Frontend Scalability**: The SENTINEL web app can be modified to accept WebRTC streams from the backend rather than using local webcams, centralizing inference.
+- **Hardware Integration**: Implement real NMEA GPS modules via serial port in `src/iot/gps_module.py`.
+- **Security**: The FastAPI backend currently runs unauthenticated. For production deployment, implement JWT validation before accepting hazard payloads.
 
 ---
-
-## 8) Real-Time Inference
-
-### Webcam mode
-
-```bash
-python main.py --mode detect --display
-```
-
-### Video file mode
-
-```bash
-python main.py --mode detect --source path/to/video.mp4 --display
-```
-
-### Headless test mode
-
-```bash
-python main.py --mode detect --max-frames 100
-```
-
----
-
-## 9) Configurable Parameters
-
-Edit `configs/config.yaml`:
-
-- Detection threshold and model paths
-- CPU/GPU device
-- Input source (webcam/video)
-- GPS base location + jitter
-- IoT protocol: HTTP/MQTT
-- Backend endpoint and DB path
-
----
-
-## 10) Logging and Storage
-
-- Structured logs: `outputs/logs/system.log`
-- JSON event log: `outputs/logs/hazard_log.json`
-- SQLite database: `outputs/logs/hazards.db`
-
----
-
-## 11) Evaluation Metrics
-
-`src/detection/evaluate.py` includes helper functions for:
-
-- Precision
-- Recall
-- F1
-- mAP (mean AP)
-
-You can integrate these with your validation pipeline outputs.
-
----
-
-## 12) Example Hazard Payload
-
-```json
-{
-  "hazard_type": "pothole",
-  "confidence": 0.87,
-  "timestamp": "2026-04-12T10:30:00+00:00",
-  "gps": {
-    "latitude": 37.775812,
-    "longitude": -122.418321,
-    "gps_timestamp": "2026-04-12T10:30:00+00:00"
-  }
-}
-```
-
----
-
-## 13) Bonus ideas
-
-- Streamlit dashboard for live hazard table + charts
-- Folium/Leaflet map visualization of GPS-tagged hazards
-- Severity scoring and route-level risk heatmaps
-
----
-
-## 14) Production Notes
-
-- Use real GPS hardware (e.g., NEO-6M) by replacing simulated GPS implementation.
-- Add authentication for backend endpoints.
-- Add retry queue for offline IoT connectivity.
-- Containerize backend + inference worker using Docker.
-- Add CI/CD checks (lint, tests, model validation).
-
----
-
-## 15) Quick End-to-End Run
-
-1. Start backend:
-
-```bash
-python main.py --mode server
-```
-
-2. In a second terminal, start detection:
-
-```bash
-python main.py --mode detect --display
-```
-
-3. Query logs:
-
-```bash
-curl http://127.0.0.1:8000/hazards
-```
-
+*Built for the future of autonomous safety and smart infrastructure.*
