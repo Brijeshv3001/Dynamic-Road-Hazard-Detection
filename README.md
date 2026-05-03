@@ -6,8 +6,7 @@ A production-style AI + IoT pipeline for detecting road hazards in real time, ge
 
 ## 🌐 Project Website & Live Demo
 
-- **Project Website**: [Insert Website Link Here](#)
-- **Vercel Live Server**: [Insert Vercel Link Here](#)
+- **Project Website & Live Server**: [https://sentinel-road-hazard-ai.vercel.app](https://sentinel-road-hazard-ai.vercel.app)
 
 ---
 
